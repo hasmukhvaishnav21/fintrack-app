@@ -39,7 +39,7 @@ export default function Profile() {
     <div className="min-h-screen bg-background pb-20">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-br from-primary via-blue-600 to-blue-700 p-6 pb-12">
+        <div className="bg-gradient-to-br from-primary via-blue-600 to-blue-700 px-6 pb-6 pt-14">
           <div className="flex items-center justify-between mb-6">
             <button 
               onClick={() => setLocation('/')}

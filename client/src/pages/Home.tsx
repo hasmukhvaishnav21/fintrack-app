@@ -159,8 +159,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header with safe-area padding for mobile notch/status bar */}
-      <div className="bg-primary text-primary-foreground p-6 pt-[max(1.5rem,env(safe-area-inset-top))] rounded-b-3xl">
+      {/* Header with extra top padding for mobile */}
+      <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-sm opacity-90 flex items-center gap-2">

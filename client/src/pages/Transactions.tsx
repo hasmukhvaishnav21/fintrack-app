@@ -96,7 +96,7 @@ export default function Transactions() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground p-6 pb-8 rounded-b-3xl">
+      <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setLocation("/")}
