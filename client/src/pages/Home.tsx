@@ -159,8 +159,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Fixed Header Section: Hero + Quick Actions (ensures scroll-only content reveal) */}
-      <section className="flex-shrink-0 min-h-[65vh] max-h-[70vh] overflow-hidden">
+      {/* Fixed Header Section: Hero + Quick Actions */}
+      <section className="flex-shrink-0">
         {/* Header with extra top padding for mobile */}
         <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
           <div className="flex items-center justify-between mb-6">
