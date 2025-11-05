@@ -49,14 +49,11 @@ export default function AddInvestmentModal({ isOpen, onClose, editInvestment }: 
   const selectedType = investmentTypes.find(t => t.id === type);
   const selectedCarat = goldCaratOptions.find(c => c.id === carat);
   
-  // Determine if user changed type or carat from original
   const typeOrCaratChanged = isEditMode && editInvestment && (
     editInvestment.type !== type || 
     (type === 'gold' && editInvestment.carat !== carat)
   );
   
-  // Use current market price if adding new or if type/carat changed
-  // Otherwise preserve historical price
   const currentMarketPrice = type === 'gold' ? (selectedCarat?.price || 0) : (selectedType?.price || 0);
   const currentPrice = isEditMode && editInvestment && !typeOrCaratChanged
     ? parseFloat(editInvestment.pricePerUnit)
@@ -93,8 +90,6 @@ export default function AddInvestmentModal({ isOpen, onClose, editInvestment }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Preserve original price only if type/carat unchanged
-    // Otherwise use current market price
     const pricePerUnit = isEditMode && editInvestment && !typeOrCaratChanged
       ? editInvestment.pricePerUnit 
       : currentPrice.toString();
@@ -121,38 +116,41 @@ export default function AddInvestmentModal({ isOpen, onClose, editInvestment }: 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/70 z-[100]"
             data-testid="modal-backdrop"
           />
 
-          {/* Modal */}
+          {/* Full-Screen Modal */}
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
+            exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-background rounded-t-3xl z-50 max-w-md mx-auto"
+            className="fixed inset-0 max-w-md w-full mx-auto flex flex-col bg-background z-[110]"
             data-testid="modal-add-investment"
           >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-white" />
+            {/* Header with safe area padding */}
+            <div className="flex-shrink-0 px-4 pt-12 pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Investment' : 'Add Investment'}</h2>
+                  <h2 className="text-lg font-bold text-foreground">{isEditMode ? 'Edit Investment' : 'Add Investment'}</h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover-elevate active-elevate-2"
+                  className="w-9 h-9 rounded-full bg-card flex items-center justify-center hover-elevate active-elevate-2"
                   data-testid="button-close"
                 >
                   <X className="w-5 h-5 text-foreground" />
                 </button>
               </div>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
                 {/* Investment Type */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Investment Type</label>
@@ -182,7 +180,7 @@ export default function AddInvestmentModal({ isOpen, onClose, editInvestment }: 
                   </div>
                 </div>
 
-                {/* Gold Carat Selection - Only show when gold is selected */}
+                {/* Gold Carat Selection */}
                 {type === 'gold' && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground mb-2 block">Gold Type</label>
@@ -251,17 +249,20 @@ export default function AddInvestmentModal({ isOpen, onClose, editInvestment }: 
                     required
                   />
                 </div>
+              </div>
 
-                {/* Submit Button */}
+              {/* Fixed Submit Button */}
+              <div className="sticky bottom-0 bg-background px-4 pt-3 pb-6 shadow-[0_-1px_0_0_var(--border)]">
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold shadow-lg hover-elevate active-elevate-2"
+                  disabled={addInvestmentMutation.isPending}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold shadow-lg hover-elevate active-elevate-2 disabled:opacity-50"
                   data-testid="button-submit"
                 >
                   {isEditMode ? 'Update Investment' : 'Add Investment'}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </motion.div>
         </>
       )}

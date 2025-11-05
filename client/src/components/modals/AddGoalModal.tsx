@@ -78,38 +78,41 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/70 z-[100]"
             data-testid="modal-backdrop"
           />
 
-          {/* Full-Height Sheet */}
+          {/* Full-Screen Modal */}
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
+            exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 bg-background z-50 max-w-md mx-auto overflow-y-auto"
+            className="fixed inset-0 max-w-md w-full mx-auto flex flex-col bg-background z-[110]"
             data-testid="modal-add-goal"
           >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                    <Target className="w-6 h-6 text-white" />
+            {/* Header with safe area padding */}
+            <div className="flex-shrink-0 px-4 pt-12 pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-foreground">Create Goal</h2>
+                  <h2 className="text-lg font-bold text-foreground">Create Goal</h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover-elevate active-elevate-2"
+                  className="w-9 h-9 rounded-full bg-card flex items-center justify-center hover-elevate active-elevate-2"
                   data-testid="button-close"
                 >
                   <X className="w-5 h-5 text-foreground" />
                 </button>
               </div>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
                 {/* Goal Name */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Goal Name</label>
@@ -196,18 +199,20 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                     data-testid="input-date"
                   />
                 </div>
+              </div>
 
-                {/* Submit Button */}
+              {/* Fixed Submit Button */}
+              <div className="sticky bottom-0 bg-background px-4 pt-3 pb-6 shadow-[0_-1px_0_0_var(--border)]">
                 <button
                   type="submit"
                   disabled={createGoalMutation.isPending}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg hover-elevate active-elevate-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg hover-elevate active-elevate-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="button-submit"
                 >
                   {createGoalMutation.isPending ? "Creating..." : "Create Goal"}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </motion.div>
         </>
       )}
