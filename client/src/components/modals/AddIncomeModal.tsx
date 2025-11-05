@@ -69,7 +69,7 @@ export default function AddIncomeModal({ isOpen, onClose }: AddIncomeModalProps)
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 z-50"
+            className="fixed inset-0 bg-black/70 z-[100]"
             data-testid="modal-backdrop"
           />
 
@@ -79,7 +79,7 @@ export default function AddIncomeModal({ isOpen, onClose }: AddIncomeModalProps)
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 bg-background max-w-md mx-auto"
+            className="fixed inset-0 z-[100] bg-background max-w-md mx-auto"
             data-testid="modal-add-income"
           >
             <div className="h-full flex flex-col">
