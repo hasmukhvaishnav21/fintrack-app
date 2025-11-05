@@ -13,6 +13,7 @@ import Transactions from "@/pages/Transactions";
 import Investments from "@/pages/Investments";
 import Goals from "@/pages/Goals";
 import GoalDetail from "@/pages/GoalDetail";
+import Communities from "@/pages/Communities";
 import Insights from "@/pages/Insights";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
@@ -35,6 +36,7 @@ function AuthenticatedRouter() {
         <PrivateRoute path="/investments" component={Investments} />
         <PrivateRoute path="/goals" component={Goals} />
         <PrivateRoute path="/goals/:id" component={GoalDetail} />
+        <PrivateRoute path="/communities" component={Communities} />
         <PrivateRoute path="/insights" component={Insights} />
         <PrivateRoute path="/profile" component={Profile} />
         <Route component={NotFound} />

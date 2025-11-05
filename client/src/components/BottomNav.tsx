@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { Home, Receipt, Plus, BarChart3, User } from "lucide-react";
+import { Home, Receipt, Users, BarChart3, User } from "lucide-react";
 import { useLocation } from "wouter";
 
-type NavItem = 'home' | 'transactions' | 'add' | 'insights' | 'profile';
+type NavItem = 'home' | 'transactions' | 'communities' | 'insights' | 'profile';
 
 interface BottomNavProps {
   activeTab?: NavItem;
@@ -18,16 +18,14 @@ export default function BottomNav({ activeTab = 'home', onTabChange }: BottomNav
     // Navigate to the appropriate route
     if (tab === 'home') setLocation('/');
     else if (tab === 'transactions') setLocation('/transactions');
+    else if (tab === 'communities') setLocation('/communities');
     else if (tab === 'insights') setLocation('/insights');
     else if (tab === 'profile') setLocation('/profile');
-    else if (tab === 'add') {
-      console.log('Opening add menu');
-      // TODO: Open add modal/menu
-    }
   };
   
   const currentTab = location === '/' ? 'home' 
     : location === '/transactions' ? 'transactions'
+    : location === '/communities' ? 'communities'
     : location === '/insights' ? 'insights'
     : location === '/profile' ? 'profile'
     : activeTab;
@@ -35,7 +33,7 @@ export default function BottomNav({ activeTab = 'home', onTabChange }: BottomNav
   const navItems = [
     { id: 'home' as NavItem, icon: Home, label: 'Home' },
     { id: 'transactions' as NavItem, icon: Receipt, label: 'Transactions' },
-    { id: 'add' as NavItem, icon: Plus, label: '' },
+    { id: 'communities' as NavItem, icon: Users, label: 'Communities' },
     { id: 'insights' as NavItem, icon: BarChart3, label: 'Insights' },
     { id: 'profile' as NavItem, icon: User, label: 'Profile' },
   ];
@@ -47,22 +45,6 @@ export default function BottomNav({ activeTab = 'home', onTabChange }: BottomNav
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
-            const isAdd = item.id === 'add';
-            
-            if (isAdd) {
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleTabClick(item.id)}
-                  className="flex flex-col items-center justify-center -mt-8"
-                  data-testid={`button-nav-${item.id}`}
-                >
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg hover-elevate active-elevate-2">
-                    <Icon className="w-7 h-7 text-primary-foreground" />
-                  </div>
-                </button>
-              );
-            }
             
             return (
               <button
