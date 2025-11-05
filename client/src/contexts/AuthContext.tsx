@@ -32,10 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         setUser(data);
       } else {
-        setUser(null);
+        // Demo mode: auto-login with demo user
+        setUser({
+          id: "demo-user-1",
+          phoneNumber: "+919876543210",
+          name: "Demo User"
+        });
       }
     } catch (error) {
-      setUser(null);
+      // Demo mode: auto-login with demo user on network error
+      setUser({
+        id: "demo-user-1",
+        phoneNumber: "+919876543210",
+        name: "Demo User"
+      });
     } finally {
       setIsLoading(false);
     }
