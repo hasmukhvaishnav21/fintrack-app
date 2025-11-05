@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Capacitor } from '@capacitor/core';
 
 interface User {
   id: string;
@@ -18,9 +19,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Check if running in native Capacitor app
+const isNativeApp = Capacitor.isNativePlatform();
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemoSession, setIsDemoSession] = useState(false);
 
   const checkAuth = async () => {
     try {
@@ -31,21 +36,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setUser(data);
+        setIsDemoSession(false);
       } else {
-        // Demo mode: auto-login with demo user
+        // Backend responded but user not authenticated - normal flow
+        setUser(null);
+        setIsDemoSession(false);
+      }
+    } catch (error) {
+      // Network error - backend truly unavailable
+      // Only auto-login in native app (APK) when backend unreachable
+      if (isNativeApp) {
+        console.log("Backend unavailable in native app, using demo mode");
         setUser({
           id: "demo-user-1",
           phoneNumber: "+919876543210",
           name: "Demo User"
         });
+        setIsDemoSession(true);
+      } else {
+        setUser(null);
+        setIsDemoSession(false);
       }
-    } catch (error) {
-      // Demo mode: auto-login with demo user on network error
-      setUser({
-        id: "demo-user-1",
-        phoneNumber: "+919876543210",
-        name: "Demo User"
-      });
     } finally {
       setIsLoading(false);
     }
@@ -57,14 +68,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData);
+    setIsDemoSession(false);
   };
 
   const logout = async () => {
     try {
-      await apiRequest("POST", "/api/auth/logout");
+      // Only skip backend logout if in demo session
+      // Real sessions in native app should call backend logout
+      if (!isDemoSession) {
+        await apiRequest("POST", "/api/auth/logout");
+      }
       setUser(null);
+      setIsDemoSession(false);
       queryClient.clear();
     } catch (error) {
+      // Even if logout fails, clear local state
+      setUser(null);
+      setIsDemoSession(false);
+      queryClient.clear();
       console.error("Logout failed:", error);
     }
   };
