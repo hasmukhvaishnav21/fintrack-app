@@ -18,12 +18,21 @@ The backend is built with Express.js and Node.js, fully leveraging TypeScript fo
 RESTful API endpoints are organized by resource (e.g., `/api/transactions`, `/api/investments`, `/api/goals`). Request bodies are validated using Zod schemas derived from Drizzle schemas, ensuring consistent validation and type inference. Standard HTTP status codes and detailed error messages are used.
 
 ### Database Schema
-Core entities include Users, Transactions, Investments, Goals, Goal Transactions, Split Bills, and Split Bill Participants. All entities use UUID primary keys and decimal types for monetary values to prevent rounding errors. Foreign key relationships and `createdAt` timestamps are standard.
+Core entities include Users, Transactions, Investments, Goals, Goal Transactions, Split Bills, Split Bill Participants, Communities, Community Members, Community Wallets, Community Positions, Community Orders, Vote Records, and Community Contributions. All entities use UUID primary keys and decimal types for monetary values to prevent rounding errors. Foreign key relationships and `createdAt` timestamps are standard.
 
 ### Core Features and Implementations
 - **Authentication**: Passwordless phone-based OTP authentication with session management.
 - **Investment Tracking**: Detailed gold tracking (22K/24K) with purity, real-time prices, and P/L calculation. Features a compact home page display and a 3-dot menu for edit/delete actions with smart pricing logic.
 - **Goals Management**: Comprehensive search, filter (by category, progress, amount, date), and sorting capabilities for savings goals, with a dedicated page for goal creation.
+- **Community Investment (NEW)**: Multi-user communities for collective gold/silver investment. Features include:
+  - Community creation with configurable approval modes (majority vote, unanimous, admin-only)
+  - Member management with role-based access (admin, treasurer, member)
+  - Order proposal system for buy/sell decisions
+  - Democratic voting on investment proposals
+  - Shared wallet and positions tracking
+  - Activity feed for transparency
+  - Demo data for offline mode testing
+  - **Note**: Real-time Socket.IO sync deferred as optional enhancement; current implementation uses TanStack Query cache invalidation.
 - **Mobile Deployment**: Capacitor-based Android app wrapper with GitHub Actions CI/CD for automated APK builds.
 
 ## External Dependencies
