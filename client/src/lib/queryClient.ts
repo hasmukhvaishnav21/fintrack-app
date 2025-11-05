@@ -1,4 +1,9 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { Capacitor } from '@capacitor/core';
+import { demoTransactions, demoInvestments, demoGoals } from './demoData';
+
+// Check if running in native Capacitor app
+const isNativeApp = Capacitor.isNativePlatform();
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -29,16 +34,37 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(queryKey.join("/") as string, {
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error) {
+      // In native app, return demo data when backend unavailable
+      if (isNativeApp) {
+        const endpoint = queryKey.join("/");
+        console.log(`Backend unavailable, using demo data for ${endpoint}`);
+        
+        if (endpoint === "/api/transactions") {
+          return demoTransactions as any;
+        }
+        if (endpoint === "/api/investments") {
+          return demoInvestments as any;
+        }
+        if (endpoint === "/api/goals") {
+          return demoGoals as any;
+        }
+      }
+      
+      // Otherwise, throw the error
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
