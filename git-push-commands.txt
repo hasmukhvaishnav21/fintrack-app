@@ -1,0 +1,80 @@
+===============================================
+  📱 FINTRACK APK - GitHub Upload Commands
+===============================================
+
+STEP 1: GitHub Repository Banayein
+-----------------------------------
+1. github.com pe jayein aur login karein
+2. "New" button click karein (green, top-right)
+3. Repository name: fintrack-app
+4. "Create repository" click karein
+
+
+STEP 2: Apna GitHub Username Yahaan Likhen
+-------------------------------------------
+Yahaan apna GitHub username likhein: __________________
+
+(Example: agar username "rahul123" hai toh wahi use karein)
+
+
+STEP 3: Replit Shell Mein Yeh Commands Run Karein
+--------------------------------------------------
+Niche waale commands ko ek-ek karke Shell mein paste karein.
+Sirf ek cheez change karni hai: YOUR_USERNAME
+
+
+# Command 1: Files add karein
+git add .
+
+# Command 2: Commit banayein  
+git commit -m "Fintrack Android app ready for APK build"
+
+# Command 3: GitHub repository connect karein
+# ⚠️ IMPORTANT: YOUR_USERNAME ko apne actual GitHub username se replace karein!
+git remote add origin https://github.com/YOUR_USERNAME/fintrack-app.git
+
+# Command 4: Code upload karein
+git push -u origin main
+
+
+===============================================
+  🎉 Ho Gaya! Ab APK Download Karein
+===============================================
+
+APK kaise download karein:
+1. GitHub pe jayein: https://github.com/YOUR_USERNAME/fintrack-app
+2. "Actions" tab click karein
+3. 5-10 minutes wait karein (green checkmark ✅ tak)
+4. Latest workflow click karein
+5. Niche "Artifacts" section mein "fintrack-debug-apk" download karein
+6. ZIP extract karein → app-debug.apk milega!
+
+
+===============================================
+  ❓ Problems?
+===============================================
+
+Problem 1: "remote origin already exists"
+Solution: Pehle yeh run karein:
+  git remote remove origin
+  
+Phir Command 3 aur 4 dobara run karein.
+
+
+Problem 2: Password maang raha hai
+Solution: Password ki jagah GitHub Personal Access Token use karein:
+  1. GitHub → Settings → Developer Settings → Personal Access Tokens
+  2. "Generate new token (classic)" click karein
+  3. "repo" checkbox select karein
+  4. Token copy karein
+  5. Password ki jagah token paste karein
+
+
+Problem 3: Git push fail ho raha hai
+Solution: Force push karein:
+  git push -f origin main
+
+
+===============================================
+
+Mujhe batayein agar koi issue aaye! 💪

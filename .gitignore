@@ -1,0 +1,35 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+android/*.iml
+captures/
+.externalNativeBuild
+.cxx
+
+# iOS
+ios/App/Pods/
+ios/App/*.xcworkspace
+ios/App/App.xcworkspace/xcuserdata/
+
+# Capacitor
+.capacitor/
+
+# Environment
+.env
+.env.local
