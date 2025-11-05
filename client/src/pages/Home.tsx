@@ -158,82 +158,81 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background pb-20">
-      {/* Fixed Top Section */}
-      <div className="flex-shrink-0">
-        {/* Header with extra top padding for mobile */}
-        <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-sm opacity-90 flex items-center gap-2">
-                👋 Welcome back
-              </p>
-              <h1 className="text-2xl font-bold" data-testid="text-username">Hasmukh Vaishnav</h1>
-            </div>
-            <button
-              className="p-2 rounded-full bg-white/20 hover-elevate active-elevate-2"
-              data-testid="button-notifications"
-            >
-              <Bell className="w-6 h-6" />
-            </button>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header with extra top padding for mobile */}
+      <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-sm opacity-90 flex items-center gap-2">
+              👋 Welcome back
+            </p>
+            <h1 className="text-2xl font-bold" data-testid="text-username">Hasmukh Vaishnav</h1>
           </div>
-
-          {/* Total Balance Card */}
-          <Card className="bg-card border-0 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">Total Balance</p>
-              <button
-                onClick={() => setBalanceVisible(!balanceVisible)}
-                className="p-1 hover-elevate active-elevate-2 rounded-full"
-                data-testid="button-toggle-balance"
-              >
-                {balanceVisible ? (
-                  <Eye className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <EyeOff className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
-            </div>
-            <h2 className="text-3xl font-bold text-foreground mb-4" data-testid="text-total-balance">
-              {balanceVisible ? `₹${totalBalance.toLocaleString("en-IN")}` : "₹ ••••••"}
-            </h2>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setLocation("/transactions?filter=income")}
-                className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
-                data-testid="button-income-summary"
-              >
-                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <ArrowUpCircle className="w-4 h-4 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Income</p>
-                  <p className="text-sm font-semibold text-foreground" data-testid="text-total-income">
-                    ₹{totalIncome.toLocaleString("en-IN")}
-                  </p>
-                </div>
-              </button>
-              <button
-                onClick={() => setLocation("/transactions?filter=expense")}
-                className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
-                data-testid="button-expense-summary"
-              >
-                <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <ArrowDownCircle className="w-4 h-4 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Expenses</p>
-                  <p className="text-sm font-semibold text-foreground" data-testid="text-total-expenses">
-                    ₹{totalExpenses.toLocaleString("en-IN")}
-                  </p>
-                </div>
-              </button>
-            </div>
-          </Card>
+          <button
+            className="p-2 rounded-full bg-white/20 hover-elevate active-elevate-2"
+            data-testid="button-notifications"
+          >
+            <Bell className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Quick Actions - Part of fixed section */}
-        <div className="px-6 py-6">
+        {/* Total Balance Card */}
+        <Card className="bg-card border-0 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-muted-foreground">Total Balance</p>
+            <button
+              onClick={() => setBalanceVisible(!balanceVisible)}
+              className="p-1 hover-elevate active-elevate-2 rounded-full"
+              data-testid="button-toggle-balance"
+            >
+              {balanceVisible ? (
+                <Eye className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <EyeOff className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+          </div>
+          <h2 className="text-3xl font-bold text-foreground mb-4" data-testid="text-total-balance">
+            {balanceVisible ? `₹${totalBalance.toLocaleString("en-IN")}` : "₹ ••••••"}
+          </h2>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setLocation("/transactions?filter=income")}
+              className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
+              data-testid="button-income-summary"
+            >
+              <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                <ArrowUpCircle className="w-4 h-4 text-green-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Income</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-total-income">
+                  ₹{totalIncome.toLocaleString("en-IN")}
+                </p>
+              </div>
+            </button>
+            <button
+              onClick={() => setLocation("/transactions?filter=expense")}
+              className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
+              data-testid="button-expense-summary"
+            >
+              <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
+                <ArrowDownCircle className="w-4 h-4 text-red-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Expenses</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-total-expenses">
+                  ₹{totalExpenses.toLocaleString("en-IN")}
+                </p>
+              </div>
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* Quick Actions */}
+        <div>
           <h2 className="text-lg font-bold text-foreground mb-4">Quick Actions</h2>
           <div className="grid grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
@@ -254,10 +253,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Scrollable Content Section */}
-      <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-4">
 
         {/* Investment Summary */}
         {investments.length > 0 && (
