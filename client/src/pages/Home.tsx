@@ -160,49 +160,47 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground p-6 rounded-b-3xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-primary text-primary-foreground p-4 rounded-b-2xl">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm opacity-90 flex items-center gap-2">
-              👋 Welcome back
-            </p>
-            <h1 className="text-2xl font-bold" data-testid="text-username">Hasmukh Vaishnav</h1>
+            <p className="text-xs opacity-90">Welcome back</p>
+            <h1 className="text-xl font-bold" data-testid="text-username">Hasmukh Vaishnav</h1>
           </div>
           <button
             className="p-2 rounded-full bg-white/20 hover-elevate active-elevate-2"
             data-testid="button-notifications"
           >
-            <Bell className="w-6 h-6" />
+            <Bell className="w-5 h-5" />
           </button>
         </div>
 
         {/* Total Balance Card */}
-        <Card className="bg-card border-0 p-6">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-muted-foreground">Total Balance</p>
+        <Card className="bg-card border-0 p-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs text-muted-foreground">Total Balance</p>
             <button
               onClick={() => setBalanceVisible(!balanceVisible)}
               className="p-1 hover-elevate active-elevate-2 rounded-full"
               data-testid="button-toggle-balance"
             >
               {balanceVisible ? (
-                <Eye className="w-5 h-5 text-muted-foreground" />
+                <Eye className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <EyeOff className="w-5 h-5 text-muted-foreground" />
+                <EyeOff className="w-4 h-4 text-muted-foreground" />
               )}
             </button>
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-4" data-testid="text-total-balance">
+          <h2 className="text-2xl font-bold text-foreground mb-3" data-testid="text-total-balance">
             {balanceVisible ? `₹${totalBalance.toLocaleString("en-IN")}` : "₹ ••••••"}
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setLocation("/transactions?filter=income")}
-              className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
+              className="flex items-center gap-1.5 hover-elevate active-elevate-2 p-1.5 rounded-lg transition-all"
               data-testid="button-income-summary"
             >
-              <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                <ArrowUpCircle className="w-4 h-4 text-green-500" />
+              <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                <ArrowUpCircle className="w-3.5 h-3.5 text-green-500" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Income</p>
@@ -213,11 +211,11 @@ export default function Home() {
             </button>
             <button
               onClick={() => setLocation("/transactions?filter=expense")}
-              className="flex items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-xl transition-all"
+              className="flex items-center gap-1.5 hover-elevate active-elevate-2 p-1.5 rounded-lg transition-all"
               data-testid="button-expense-summary"
             >
-              <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                <ArrowDownCircle className="w-4 h-4 text-red-500" />
+              <div className="w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <ArrowDownCircle className="w-3.5 h-3.5 text-red-500" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Expenses</p>
@@ -230,11 +228,11 @@ export default function Home() {
         </Card>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
         {/* Quick Actions */}
         <div>
-          <h2 className="text-lg font-bold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <h2 className="text-base font-bold text-foreground mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-3 gap-3">
             {quickActions.map((action, index) => (
               <motion.button
                 key={action.id}
@@ -242,13 +240,13 @@ export default function Home() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={action.onClick}
-                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card hover-elevate active-elevate-2"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card hover-elevate active-elevate-2"
                 data-testid={`button-${action.id}`}
               >
-                <div className={`w-12 h-12 rounded-full ${action.bg} flex items-center justify-center`}>
-                  <action.icon className={`w-6 h-6 ${action.color}`} />
+                <div className={`w-10 h-10 rounded-full ${action.bg} flex items-center justify-center flex-shrink-0`}>
+                  <action.icon className={`w-5 h-5 ${action.color}`} />
                 </div>
-                <span className="text-xs font-medium text-foreground text-center">{action.label}</span>
+                <span className="text-xs font-medium text-foreground text-center leading-tight">{action.label}</span>
               </motion.button>
             ))}
           </div>
@@ -257,16 +255,16 @@ export default function Home() {
         {/* Investment Summary */}
         {investments.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-foreground">Investments</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-foreground">Investments</h2>
               <Link href="/investments">
-                <button className="text-sm text-primary font-medium flex items-center gap-1" data-testid="link-view-all-investments">
-                  View All <ChevronRight className="w-4 h-4" />
+                <button className="text-xs text-primary font-medium flex items-center gap-0.5" data-testid="link-view-all-investments">
+                  View All <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </Link>
             </div>
             
-            <Card className="p-4">
+            <Card className="p-3">
               {/* Total Summary */}
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -354,37 +352,37 @@ export default function Home() {
         {/* Goals */}
         {goals.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-foreground">Savings Goals</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-foreground">Savings Goals</h2>
               <Link href="/goals">
-                <button className="text-sm text-primary font-medium flex items-center gap-1" data-testid="link-view-all-goals">
-                  View All <ChevronRight className="w-4 h-4" />
+                <button className="text-xs text-primary font-medium flex items-center gap-0.5" data-testid="link-view-all-goals">
+                  View All <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </Link>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {goals.slice(0, 3).map((goal) => {
                 const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
                 const goalIcon = iconOptions.find((opt) => opt.value === goal.icon);
                 
                 return (
                   <Link key={goal.id} href={`/goals/${goal.id}`}>
-                    <Card className="p-4 hover-elevate active-elevate-2 cursor-pointer" data-testid={`card-goal-${goal.id}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                    <Card className="p-3 hover-elevate active-elevate-2 cursor-pointer" data-testid={`card-goal-${goal.id}`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl flex-shrink-0">
                           {goalIcon?.icon || "🎯"}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">{goal.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>₹{parseFloat(goal.currentAmount).toLocaleString("en-IN")}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground text-sm truncate">{goal.name}</h3>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="truncate">₹{parseFloat(goal.currentAmount).toLocaleString("en-IN")}</span>
                             <span>/</span>
-                            <span>₹{parseFloat(goal.targetAmount).toLocaleString("en-IN")}</span>
+                            <span className="truncate">₹{parseFloat(goal.targetAmount).toLocaleString("en-IN")}</span>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex-shrink-0">
                           <p className="text-sm font-bold text-primary">{progress.toFixed(0)}%</p>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
                     </Card>
@@ -398,11 +396,11 @@ export default function Home() {
         {/* Recent Transactions */}
         {recentTransactions.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-foreground">Recent Transactions</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-foreground">Recent Transactions</h2>
               <Link href="/transactions">
-                <button className="text-sm text-primary font-medium flex items-center gap-1" data-testid="link-view-all-transactions">
-                  View All <ChevronRight className="w-4 h-4" />
+                <button className="text-xs text-primary font-medium flex items-center gap-0.5" data-testid="link-view-all-transactions">
+                  View All <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </Link>
             </div>
@@ -410,25 +408,25 @@ export default function Home() {
               {recentTransactions.map((transaction) => (
                 <Card
                   key={transaction.id}
-                  className="p-4 hover-elevate active-elevate-2"
+                  className="p-3 hover-elevate active-elevate-2"
                   data-testid={`card-transaction-${transaction.id}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
                         transaction.type === "income"
                           ? "bg-green-500/10"
                           : "bg-red-500/10"
                       }`}
                     >
                       {transaction.type === "income" ? (
-                        <ArrowUpCircle className="w-5 h-5 text-green-500" />
+                        <ArrowUpCircle className="w-4.5 h-4.5 text-green-500" />
                       ) : (
-                        <ArrowDownCircle className="w-5 h-5 text-red-500" />
+                        <ArrowDownCircle className="w-4.5 h-4.5 text-red-500" />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">{transaction.category}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground text-sm truncate">{transaction.category}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(transaction.date).toLocaleDateString("en-IN", {
                           day: "numeric",
@@ -437,7 +435,7 @@ export default function Home() {
                       </p>
                     </div>
                     <p
-                      className={`font-bold ${
+                      className={`font-bold text-sm flex-shrink-0 ${
                         transaction.type === "income" ? "text-green-500" : "text-red-500"
                       }`}
                     >
