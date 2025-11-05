@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { useLocation } from 'wouter';
 import { Users, Plus, Search, TrendingUp, DollarSign, ArrowRight } from 'lucide-react';
 import { Community } from '@shared/schema';
 import CreateCommunityModal from '@/components/modals/CreateCommunityModal';
@@ -118,8 +119,11 @@ interface CommunityCardProps {
 }
 
 function CommunityCard({ community }: CommunityCardProps) {
+  const [, setLocation] = useLocation();
+
   return (
     <div
+      onClick={() => setLocation(`/communities/${community.id}`)}
       className="p-4 rounded-2xl bg-card border border-border hover-elevate active-elevate-2 cursor-pointer"
       data-testid={`card-community-${community.id}`}
     >
