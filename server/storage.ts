@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type OtpSession, type Transaction, type Investment, type Goal, type GoalTransaction, type SplitBill, type SplitBillParticipant } from "@shared/schema";
+import { type User, type InsertUser, type OtpSession, type Transaction, type Investment, type Goal, type GoalTransaction, type SplitBill, type SplitBillParticipant, type Community, type CommunityMember, type CommunityWallet, type CommunityPosition, type CommunityOrder, type VoteRecord, type CommunityContribution } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -48,6 +48,47 @@ export interface IStorage {
   getBillParticipants(billId: string): Promise<SplitBillParticipant[]>;
   createBillParticipant(participant: Omit<SplitBillParticipant, 'id'>): Promise<SplitBillParticipant>;
   updateBillParticipant(id: string, participant: Partial<Omit<SplitBillParticipant, 'id'>>): Promise<SplitBillParticipant | undefined>;
+  
+  // Community methods
+  getCommunities(userId: string): Promise<Community[]>;
+  getCommunity(id: string): Promise<Community | undefined>;
+  createCommunity(community: Omit<Community, 'id' | 'createdAt' | 'memberCount'>): Promise<Community>;
+  updateCommunity(id: string, community: Partial<Omit<Community, 'id' | 'createdAt'>>): Promise<Community | undefined>;
+  deleteCommunity(id: string): Promise<boolean>;
+  
+  // Community member methods
+  getCommunityMembers(communityId: string): Promise<CommunityMember[]>;
+  getCommunityMember(communityId: string, userId: string): Promise<CommunityMember | undefined>;
+  getCommunityMemberById(id: string): Promise<CommunityMember | undefined>;
+  addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt'>): Promise<CommunityMember>;
+  updateCommunityMember(id: string, member: Partial<Omit<CommunityMember, 'id' | 'joinedAt'>>): Promise<CommunityMember | undefined>;
+  removeCommunityMember(id: string): Promise<boolean>;
+  
+  // Community wallet methods
+  getCommunityWallet(communityId: string): Promise<CommunityWallet | undefined>;
+  updateCommunityWallet(communityId: string, balance: string): Promise<CommunityWallet | undefined>;
+  
+  // Community position methods
+  getCommunityPositions(communityId: string): Promise<CommunityPosition[]>;
+  getCommunityPosition(communityId: string, type: string, carat?: string): Promise<CommunityPosition | undefined>;
+  updateCommunityPosition(id: string, position: Partial<Omit<CommunityPosition, 'id'>>): Promise<CommunityPosition | undefined>;
+  createCommunityPosition(position: Omit<CommunityPosition, 'id' | 'updatedAt'>): Promise<CommunityPosition>;
+  
+  // Community order methods
+  getCommunityOrders(communityId: string): Promise<CommunityOrder[]>;
+  getCommunityOrder(id: string): Promise<CommunityOrder | undefined>;
+  createCommunityOrder(order: Omit<CommunityOrder, 'id' | 'createdAt' | 'status' | 'votesFor' | 'votesAgainst' | 'executedAt'>): Promise<CommunityOrder>;
+  updateCommunityOrder(id: string, order: Partial<Omit<CommunityOrder, 'id' | 'createdAt'>>): Promise<CommunityOrder | undefined>;
+  
+  // Vote record methods
+  getOrderVotes(orderId: string): Promise<VoteRecord[]>;
+  getUserVote(orderId: string, userId: string): Promise<VoteRecord | undefined>;
+  createVote(vote: Omit<VoteRecord, 'id' | 'votedAt'>): Promise<VoteRecord>;
+  
+  // Community contribution methods
+  getCommunityContributions(communityId: string): Promise<CommunityContribution[]>;
+  getUserContributions(communityId: string, userId: string): Promise<CommunityContribution[]>;
+  createContribution(contribution: Omit<CommunityContribution, 'id' | 'createdAt'>): Promise<CommunityContribution>;
 }
 
 export class MemStorage implements IStorage {
@@ -59,6 +100,13 @@ export class MemStorage implements IStorage {
   private goalTransactions: Map<string, GoalTransaction>;
   private splitBills: Map<string, SplitBill>;
   private billParticipants: Map<string, SplitBillParticipant>;
+  private communities: Map<string, Community>;
+  private communityMembers: Map<string, CommunityMember>;
+  private communityWallets: Map<string, CommunityWallet>;
+  private communityPositions: Map<string, CommunityPosition>;
+  private communityOrders: Map<string, CommunityOrder>;
+  private voteRecords: Map<string, VoteRecord>;
+  private communityContributions: Map<string, CommunityContribution>;
 
   constructor() {
     this.users = new Map();
@@ -69,6 +117,13 @@ export class MemStorage implements IStorage {
     this.goalTransactions = new Map();
     this.splitBills = new Map();
     this.billParticipants = new Map();
+    this.communities = new Map();
+    this.communityMembers = new Map();
+    this.communityWallets = new Map();
+    this.communityPositions = new Map();
+    this.communityOrders = new Map();
+    this.voteRecords = new Map();
+    this.communityContributions = new Map();
     
     this.seedExampleData();
   }
@@ -584,6 +639,279 @@ export class MemStorage implements IStorage {
     const updated: SplitBillParticipant = { ...participant, ...updates };
     this.billParticipants.set(id, updated);
     return updated;
+  }
+
+  // Community methods
+  async getCommunities(userId: string): Promise<Community[]> {
+    const userCommunityIds = Array.from(this.communityMembers.values())
+      .filter(m => m.userId === userId)
+      .map(m => m.communityId);
+    
+    return Array.from(this.communities.values())
+      .filter(c => userCommunityIds.includes(c.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getCommunity(id: string): Promise<Community | undefined> {
+    return this.communities.get(id);
+  }
+
+  async createCommunity(community: Omit<Community, 'id' | 'createdAt' | 'memberCount'>): Promise<Community> {
+    const id = randomUUID();
+    const newCommunity: Community = {
+      ...community,
+      id,
+      memberCount: 1,
+      createdAt: new Date()
+    };
+    this.communities.set(id, newCommunity);
+    
+    // Auto-add creator as admin member
+    await this.addCommunityMember({
+      communityId: id,
+      userId: community.adminId,
+      role: 'admin'
+    });
+    
+    // Create wallet for community
+    const walletId = randomUUID();
+    const wallet: CommunityWallet = {
+      id: walletId,
+      communityId: id,
+      balance: '0',
+      updatedAt: new Date()
+    };
+    this.communityWallets.set(walletId, wallet);
+    
+    return newCommunity;
+  }
+
+  async updateCommunity(id: string, updates: Partial<Omit<Community, 'id' | 'createdAt'>>): Promise<Community | undefined> {
+    const community = this.communities.get(id);
+    if (!community) return undefined;
+    
+    const updated: Community = { ...community, ...updates };
+    this.communities.set(id, updated);
+    return updated;
+  }
+
+  async deleteCommunity(id: string): Promise<boolean> {
+    return this.communities.delete(id);
+  }
+
+  // Community member methods
+  async getCommunityMembers(communityId: string): Promise<CommunityMember[]> {
+    return Array.from(this.communityMembers.values())
+      .filter(m => m.communityId === communityId)
+      .sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
+  }
+
+  async getCommunityMember(communityId: string, userId: string): Promise<CommunityMember | undefined> {
+    return Array.from(this.communityMembers.values())
+      .find(m => m.communityId === communityId && m.userId === userId);
+  }
+
+  async getCommunityMemberById(id: string): Promise<CommunityMember | undefined> {
+    return this.communityMembers.get(id);
+  }
+
+  async addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt'>): Promise<CommunityMember> {
+    const id = randomUUID();
+    const newMember: CommunityMember = {
+      ...member,
+      id,
+      joinedAt: new Date()
+    };
+    this.communityMembers.set(id, newMember);
+    
+    // Update member count
+    const community = this.communities.get(member.communityId);
+    if (community) {
+      community.memberCount += 1;
+      this.communities.set(community.id, community);
+    }
+    
+    return newMember;
+  }
+
+  async updateCommunityMember(id: string, updates: Partial<Omit<CommunityMember, 'id' | 'joinedAt'>>): Promise<CommunityMember | undefined> {
+    const member = this.communityMembers.get(id);
+    if (!member) return undefined;
+    
+    const updated: CommunityMember = { ...member, ...updates };
+    this.communityMembers.set(id, updated);
+    return updated;
+  }
+
+  async removeCommunityMember(id: string): Promise<boolean> {
+    const member = this.communityMembers.get(id);
+    if (!member) return false;
+    
+    // Update member count
+    const community = this.communities.get(member.communityId);
+    if (community) {
+      community.memberCount = Math.max(0, community.memberCount - 1);
+      this.communities.set(community.id, community);
+    }
+    
+    return this.communityMembers.delete(id);
+  }
+
+  // Community wallet methods
+  async getCommunityWallet(communityId: string): Promise<CommunityWallet | undefined> {
+    return Array.from(this.communityWallets.values())
+      .find(w => w.communityId === communityId);
+  }
+
+  async updateCommunityWallet(communityId: string, balance: string): Promise<CommunityWallet | undefined> {
+    const wallet = await this.getCommunityWallet(communityId);
+    if (!wallet) return undefined;
+    
+    wallet.balance = balance;
+    wallet.updatedAt = new Date();
+    this.communityWallets.set(wallet.id, wallet);
+    return wallet;
+  }
+
+  // Community position methods
+  async getCommunityPositions(communityId: string): Promise<CommunityPosition[]> {
+    return Array.from(this.communityPositions.values())
+      .filter(p => p.communityId === communityId);
+  }
+
+  async getCommunityPosition(communityId: string, type: string, carat?: string): Promise<CommunityPosition | undefined> {
+    return Array.from(this.communityPositions.values())
+      .find(p => p.communityId === communityId && p.type === type && (!carat || p.carat === carat));
+  }
+
+  async createCommunityPosition(position: Omit<CommunityPosition, 'id' | 'updatedAt'>): Promise<CommunityPosition> {
+    const id = randomUUID();
+    const newPosition: CommunityPosition = {
+      ...position,
+      id,
+      updatedAt: new Date()
+    };
+    this.communityPositions.set(id, newPosition);
+    return newPosition;
+  }
+
+  async updateCommunityPosition(id: string, updates: Partial<Omit<CommunityPosition, 'id'>>): Promise<CommunityPosition | undefined> {
+    const position = this.communityPositions.get(id);
+    if (!position) return undefined;
+    
+    const updated: CommunityPosition = { ...position, ...updates, updatedAt: new Date() };
+    this.communityPositions.set(id, updated);
+    return updated;
+  }
+
+  // Community order methods
+  async getCommunityOrders(communityId: string): Promise<CommunityOrder[]> {
+    return Array.from(this.communityOrders.values())
+      .filter(o => o.communityId === communityId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getCommunityOrder(id: string): Promise<CommunityOrder | undefined> {
+    return this.communityOrders.get(id);
+  }
+
+  async createCommunityOrder(order: Omit<CommunityOrder, 'id' | 'createdAt' | 'status' | 'votesFor' | 'votesAgainst' | 'executedAt'>): Promise<CommunityOrder> {
+    const id = randomUUID();
+    const newOrder: CommunityOrder = {
+      ...order,
+      id,
+      status: 'proposed',
+      votesFor: 0,
+      votesAgainst: 0,
+      executedAt: null,
+      createdAt: new Date()
+    };
+    this.communityOrders.set(id, newOrder);
+    return newOrder;
+  }
+
+  async updateCommunityOrder(id: string, updates: Partial<Omit<CommunityOrder, 'id' | 'createdAt'>>): Promise<CommunityOrder | undefined> {
+    const order = this.communityOrders.get(id);
+    if (!order) return undefined;
+    
+    const updated: CommunityOrder = { ...order, ...updates };
+    this.communityOrders.set(id, updated);
+    return updated;
+  }
+
+  // Vote record methods
+  async getOrderVotes(orderId: string): Promise<VoteRecord[]> {
+    return Array.from(this.voteRecords.values())
+      .filter(v => v.orderId === orderId)
+      .sort((a, b) => new Date(a.votedAt).getTime() - new Date(b.votedAt).getTime());
+  }
+
+  async getUserVote(orderId: string, userId: string): Promise<VoteRecord | undefined> {
+    return Array.from(this.voteRecords.values())
+      .find(v => v.orderId === orderId && v.userId === userId);
+  }
+
+  async createVote(vote: Omit<VoteRecord, 'id' | 'votedAt'>): Promise<VoteRecord> {
+    const id = randomUUID();
+    const newVote: VoteRecord = {
+      ...vote,
+      id,
+      votedAt: new Date()
+    };
+    this.voteRecords.set(id, newVote);
+    
+    // Update order vote counts
+    const order = this.communityOrders.get(vote.orderId);
+    if (order) {
+      if (vote.vote === 'for') {
+        order.votesFor += 1;
+      } else {
+        order.votesAgainst += 1;
+      }
+      this.communityOrders.set(order.id, order);
+    }
+    
+    return newVote;
+  }
+
+  // Community contribution methods
+  async getCommunityContributions(communityId: string): Promise<CommunityContribution[]> {
+    return Array.from(this.communityContributions.values())
+      .filter(c => c.communityId === communityId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getUserContributions(communityId: string, userId: string): Promise<CommunityContribution[]> {
+    return Array.from(this.communityContributions.values())
+      .filter(c => c.communityId === communityId && c.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createContribution(contribution: Omit<CommunityContribution, 'id' | 'createdAt'>): Promise<CommunityContribution> {
+    const id = randomUUID();
+    const newContribution: CommunityContribution = {
+      ...contribution,
+      id,
+      createdAt: new Date()
+    };
+    this.communityContributions.set(id, newContribution);
+    
+    // Update community wallet
+    const wallet = await this.getCommunityWallet(contribution.communityId);
+    if (wallet) {
+      const amount = parseFloat(contribution.amount);
+      let newBalance = parseFloat(wallet.balance);
+      
+      if (contribution.type === 'deposit') {
+        newBalance += amount;
+      } else if (contribution.type === 'withdrawal') {
+        newBalance -= amount;
+      }
+      
+      await this.updateCommunityWallet(contribution.communityId, Math.max(0, newBalance).toString());
+    }
+    
+    return newContribution;
   }
 }
 

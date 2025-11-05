@@ -182,3 +182,146 @@ export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type InsertGoalTransaction = z.infer<typeof insertGoalTransactionSchema>;
 export type InsertSplitBill = z.infer<typeof insertSplitBillSchema>;
 export type InsertSplitBillParticipant = z.infer<typeof insertSplitBillParticipantSchema>;
+
+// ==================== COMMUNITY INVESTMENT TABLES ====================
+
+// Communities table - groups for collective gold/silver investment
+export const communities = pgTable("communities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  adminId: varchar("admin_id").notNull(), // User ID of admin
+  approvalMode: text("approval_mode").notNull().default("admin_only"), // 'admin_only', 'simple_majority', 'weighted'
+  memberCount: integer("member_count").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Community members - users in each community
+export const communityMembers = pgTable("community_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  role: text("role").notNull().default("member"), // 'admin', 'treasurer', 'member'
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+});
+
+// Community wallets - shared cash balance per community
+export const communityWallets = pgTable("community_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull().unique(),
+  balance: decimal("balance", { precision: 12, scale: 2 }).notNull().default("0"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Community positions - shared gold/silver holdings
+export const communityPositions = pgTable("community_positions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull(),
+  type: text("type").notNull(), // 'gold' or 'silver'
+  carat: text("carat"), // '22K' or '24K' for gold
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull().default("0"),
+  avgPricePerUnit: decimal("avg_price_per_unit", { precision: 10, scale: 2 }).notNull(),
+  totalInvested: decimal("total_invested", { precision: 12, scale: 2 }).notNull().default("0"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Community orders - buy/sell proposals
+export const communityOrders = pgTable("community_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull(),
+  proposedBy: varchar("proposed_by").notNull(), // User ID
+  orderType: text("order_type").notNull(), // 'buy' or 'sell'
+  metalType: text("metal_type").notNull(), // 'gold' or 'silver'
+  carat: text("carat"), // '22K' or '24K' for gold
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
+  pricePerUnit: decimal("price_per_unit", { precision: 10, scale: 2 }).notNull(),
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
+  status: text("status").notNull().default("proposed"), // 'proposed', 'voting', 'approved', 'rejected', 'executed'
+  votesFor: integer("votes_for").notNull().default(0),
+  votesAgainst: integer("votes_against").notNull().default(0),
+  deadline: timestamp("deadline"),
+  executedAt: timestamp("executed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Vote records - individual member votes on orders
+export const voteRecords = pgTable("vote_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  vote: text("vote").notNull(), // 'for' or 'against'
+  votedAt: timestamp("voted_at").defaultNow().notNull(),
+});
+
+// Community contributions - track individual member contributions
+export const communityContributions = pgTable("community_contributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  communityId: varchar("community_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  orderId: varchar("order_id"), // Link to which order this contribution is for
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  type: text("type").notNull(), // 'deposit', 'withdrawal', 'investment', 'redemption'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// TypeScript types for community tables
+export type Community = typeof communities.$inferSelect;
+export type CommunityMember = typeof communityMembers.$inferSelect;
+export type CommunityWallet = typeof communityWallets.$inferSelect;
+export type CommunityPosition = typeof communityPositions.$inferSelect;
+export type CommunityOrder = typeof communityOrders.$inferSelect;
+export type VoteRecord = typeof voteRecords.$inferSelect;
+export type CommunityContribution = typeof communityContributions.$inferSelect;
+
+// Insert schemas for community tables
+export const insertCommunitySchema = createInsertSchema(communities).omit({ id: true, createdAt: true, memberCount: true });
+export const insertCommunityMemberSchema = createInsertSchema(communityMembers).omit({ id: true, joinedAt: true });
+export const insertCommunityWalletSchema = createInsertSchema(communityWallets).omit({ id: true, updatedAt: true });
+export const insertCommunityPositionSchema = createInsertSchema(communityPositions).omit({ id: true, updatedAt: true });
+export const insertCommunityOrderSchema = createInsertSchema(communityOrders).omit({ id: true, createdAt: true, status: true, votesFor: true, votesAgainst: true, executedAt: true });
+export const insertVoteRecordSchema = createInsertSchema(voteRecords).omit({ id: true, votedAt: true });
+export const insertCommunityContributionSchema = createInsertSchema(communityContributions).omit({ id: true, createdAt: true });
+
+// Form schemas for community operations
+export const createCommunityFormSchema = z.object({
+  name: z.string().min(1, "Community name is required").max(50, "Name too long"),
+  description: z.string().max(200, "Description too long").optional(),
+  approvalMode: z.enum(["admin_only", "simple_majority", "weighted"]).default("admin_only"),
+});
+
+export const createOrderFormSchema = z.object({
+  orderType: z.enum(["buy", "sell"]),
+  metalType: z.enum(["gold", "silver"]),
+  carat: z.enum(["22K", "24K"]).optional(),
+  quantity: z.coerce.number().positive("Quantity must be greater than 0"),
+  pricePerUnit: z.coerce.number().positive("Price must be greater than 0"),
+}).refine(
+  (data) => {
+    if (data.metalType === "gold") {
+      return data.carat !== undefined;
+    }
+    return true;
+  },
+  {
+    message: "Please select carat for gold",
+    path: ["carat"],
+  }
+);
+
+export const voteFormSchema = z.object({
+  orderId: z.string().min(1),
+  vote: z.enum(["for", "against"]),
+});
+
+export const contributionFormSchema = z.object({
+  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  type: z.enum(["deposit", "withdrawal"]),
+});
+
+export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
+export type InsertCommunityMember = z.infer<typeof insertCommunityMemberSchema>;
+export type InsertCommunityWallet = z.infer<typeof insertCommunityWalletSchema>;
+export type InsertCommunityPosition = z.infer<typeof insertCommunityPositionSchema>;
+export type InsertCommunityOrder = z.infer<typeof insertCommunityOrderSchema>;
+export type InsertVoteRecord = z.infer<typeof insertVoteRecordSchema>;
+export type InsertCommunityContribution = z.infer<typeof insertCommunityContributionSchema>;

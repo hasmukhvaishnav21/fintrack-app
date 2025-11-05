@@ -461,6 +461,574 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== COMMUNITY ROUTES ====================
+  
+  // Get user's communities
+  app.get("/api/communities", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const communities = await storage.getCommunities(req.session.userId);
+    res.json(communities);
+  });
+
+  // Get single community details
+  app.get("/api/communities/:id", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const community = await storage.getCommunity(req.params.id);
+    if (!community) {
+      return res.status(404).json({ error: "Community not found" });
+    }
+    res.json(community);
+  });
+
+  // Create new community
+  app.post("/api/communities", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const schema = z.object({
+        name: z.string().min(1).max(50),
+        description: z.string().max(200).optional(),
+        approvalMode: z.enum(['admin_only', 'simple_majority', 'weighted']).default('admin_only')
+      });
+      
+      const validated = schema.parse(req.body);
+      const community = await storage.createCommunity({
+        name: validated.name,
+        description: validated.description || null,
+        approvalMode: validated.approvalMode,
+        adminId: req.session.userId
+      });
+      
+      res.json(community);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to create community" });
+    }
+  });
+
+  // Update community
+  app.patch("/api/communities/:id", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is admin
+      const community = await storage.getCommunity(req.params.id);
+      if (!community) {
+        return res.status(404).json({ error: "Community not found" });
+      }
+      
+      if (community.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Only admin can update community" });
+      }
+      
+      const schema = z.object({
+        name: z.string().min(1).max(50).optional(),
+        description: z.string().max(200).optional(),
+        approvalMode: z.enum(['admin_only', 'simple_majority', 'weighted']).optional()
+      });
+      
+      const validated = schema.parse(req.body);
+      const updated = await storage.updateCommunity(req.params.id, validated);
+      res.json(updated);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to update community" });
+    }
+  });
+
+  // Delete community
+  app.delete("/api/communities/:id", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is admin
+    const community = await storage.getCommunity(req.params.id);
+    if (!community) {
+      return res.status(404).json({ error: "Community not found" });
+    }
+    
+    if (community.adminId !== req.session.userId) {
+      return res.status(403).json({ error: "Only admin can delete community" });
+    }
+    
+    const deleted = await storage.deleteCommunity(req.params.id);
+    res.json({ success: true });
+  });
+
+  // Get community members
+  app.get("/api/communities/:id/members", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const members = await storage.getCommunityMembers(req.params.id);
+    res.json(members);
+  });
+
+  // Add member to community
+  app.post("/api/communities/:id/members", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is admin
+      const community = await storage.getCommunity(req.params.id);
+      if (!community) {
+        return res.status(404).json({ error: "Community not found" });
+      }
+      
+      if (community.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Only admin can add members" });
+      }
+      
+      const schema = z.object({
+        userId: z.string().min(1),
+        role: z.enum(['admin', 'treasurer', 'member']).default('member')
+      });
+      
+      const validated = schema.parse(req.body);
+      const member = await storage.addCommunityMember({
+        communityId: req.params.id,
+        ...validated
+      });
+      res.json(member);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to add member" });
+    }
+  });
+
+  // Remove member from community
+  app.delete("/api/communities/members/:id", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Get member by ID
+    const member = await storage.getCommunityMemberById(req.params.id);
+    if (!member) {
+      return res.status(404).json({ error: "Member not found" });
+    }
+    
+    // Check if user is admin
+    const community = await storage.getCommunity(member.communityId);
+    if (!community) {
+      return res.status(404).json({ error: "Community not found" });
+    }
+    
+    if (community.adminId !== req.session.userId) {
+      return res.status(403).json({ error: "Only admin can remove members" });
+    }
+    
+    const deleted = await storage.removeCommunityMember(req.params.id);
+    res.json({ success: true });
+  });
+
+  // Get community wallet
+  app.get("/api/communities/:id/wallet", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const wallet = await storage.getCommunityWallet(req.params.id);
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found" });
+    }
+    res.json(wallet);
+  });
+
+  // Get community positions (holdings)
+  app.get("/api/communities/:id/positions", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const positions = await storage.getCommunityPositions(req.params.id);
+    res.json(positions);
+  });
+
+  // Get community orders
+  app.get("/api/communities/:id/orders", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const orders = await storage.getCommunityOrders(req.params.id);
+    res.json(orders);
+  });
+
+  // Create order proposal
+  app.post("/api/communities/:id/orders", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is a member
+      const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+      if (!member) {
+        return res.status(403).json({ error: "Not a member of this community" });
+      }
+      
+      const schema = z.object({
+        orderType: z.enum(['buy', 'sell']),
+        metalType: z.enum(['gold', 'silver']),
+        carat: z.enum(['22K', '24K']).optional(),
+        quantity: z.coerce.number().positive(),
+        pricePerUnit: z.coerce.number().positive()
+      }).refine(
+        (data) => {
+          if (data.metalType === 'gold') {
+            return data.carat !== undefined;
+          }
+          return true;
+        },
+        { message: "Carat is required for gold orders" }
+      );
+      
+      const validated = schema.parse(req.body);
+      const totalAmount = (validated.quantity * validated.pricePerUnit).toFixed(2);
+      
+      const order = await storage.createCommunityOrder({
+        communityId: req.params.id,
+        proposedBy: req.session.userId,
+        orderType: validated.orderType,
+        metalType: validated.metalType,
+        carat: validated.carat || null,
+        quantity: validated.quantity.toString(),
+        pricePerUnit: validated.pricePerUnit.toString(),
+        totalAmount,
+        deadline: null
+      });
+      
+      res.json(order);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to create order" });
+    }
+  });
+
+  // Update order status
+  app.patch("/api/communities/orders/:id", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const order = await storage.getCommunityOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      
+      // Check if user is admin
+      const community = await storage.getCommunity(order.communityId);
+      if (!community || community.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Only admin can update order status" });
+      }
+      
+      const schema = z.object({
+        status: z.enum(['proposed', 'voting', 'approved', 'rejected', 'executed']).optional()
+      });
+      
+      const validated = schema.parse(req.body);
+      const updated = await storage.updateCommunityOrder(req.params.id, validated);
+      res.json(updated);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to update order" });
+    }
+  });
+
+  // Get votes for an order
+  app.get("/api/communities/orders/:id/votes", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const order = await storage.getCommunityOrder(req.params.id);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(order.communityId, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const votes = await storage.getOrderVotes(req.params.id);
+    res.json(votes);
+  });
+
+  // Vote on order
+  app.post("/api/communities/orders/:id/vote", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const order = await storage.getCommunityOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      
+      // Check if user is a member
+      const member = await storage.getCommunityMember(order.communityId, req.session.userId);
+      if (!member) {
+        return res.status(403).json({ error: "Not a member of this community" });
+      }
+      
+      // Check if user already voted
+      const existingVote = await storage.getUserVote(req.params.id, req.session.userId);
+      if (existingVote) {
+        return res.status(400).json({ error: "You have already voted on this order" });
+      }
+      
+      const schema = z.object({
+        vote: z.enum(['for', 'against'])
+      });
+      
+      const validated = schema.parse(req.body);
+      const voteRecord = await storage.createVote({
+        orderId: req.params.id,
+        userId: req.session.userId,
+        vote: validated.vote
+      });
+      
+      // Get updated order
+      const updatedOrder = await storage.getCommunityOrder(req.params.id);
+      res.json({ vote: voteRecord, order: updatedOrder });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to vote" });
+    }
+  });
+
+  // Execute approved order
+  app.post("/api/communities/orders/:id/execute", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const order = await storage.getCommunityOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      
+      // Check if user is admin or treasurer
+      const community = await storage.getCommunity(order.communityId);
+      if (!community) {
+        return res.status(404).json({ error: "Community not found" });
+      }
+      
+      const member = await storage.getCommunityMember(order.communityId, req.session.userId);
+      if (!member || (member.role !== 'admin' && member.role !== 'treasurer')) {
+        return res.status(403).json({ error: "Only admin or treasurer can execute orders" });
+      }
+      
+      if (order.status !== 'approved') {
+        return res.status(400).json({ error: "Order must be approved before execution" });
+      }
+      
+      // Update order status to executed
+      await storage.updateCommunityOrder(order.id, {
+        status: 'executed',
+        executedAt: new Date()
+      });
+      
+      if (order.orderType === 'buy') {
+        // Find or create position
+        let position = await storage.getCommunityPosition(order.communityId, order.metalType, order.carat || undefined);
+        
+        if (position) {
+          // Update existing position
+          const newQuantity = parseFloat(position.quantity) + parseFloat(order.quantity);
+          const newTotalInvested = parseFloat(position.totalInvested) + parseFloat(order.totalAmount);
+          const newAvgPrice = newTotalInvested / newQuantity;
+          
+          await storage.updateCommunityPosition(position.id, {
+            quantity: newQuantity.toString(),
+            avgPricePerUnit: newAvgPrice.toFixed(2),
+            totalInvested: newTotalInvested.toFixed(2)
+          });
+        } else {
+          // Create new position
+          await storage.createCommunityPosition({
+            communityId: order.communityId,
+            type: order.metalType,
+            carat: order.carat,
+            quantity: order.quantity,
+            avgPricePerUnit: order.pricePerUnit,
+            totalInvested: order.totalAmount
+          });
+        }
+        
+        // Deduct from wallet
+        const wallet = await storage.getCommunityWallet(order.communityId);
+        if (wallet) {
+          const newBalance = parseFloat(wallet.balance) - parseFloat(order.totalAmount);
+          await storage.updateCommunityWallet(order.communityId, Math.max(0, newBalance).toFixed(2));
+        }
+      } else if (order.orderType === 'sell') {
+        // Find position
+        const position = await storage.getCommunityPosition(order.communityId, order.metalType, order.carat || undefined);
+        
+        if (position) {
+          // Update position
+          const newQuantity = parseFloat(position.quantity) - parseFloat(order.quantity);
+          const soldProportion = parseFloat(order.quantity) / parseFloat(position.quantity);
+          const newTotalInvested = parseFloat(position.totalInvested) * (1 - soldProportion);
+          
+          await storage.updateCommunityPosition(position.id, {
+            quantity: Math.max(0, newQuantity).toString(),
+            totalInvested: Math.max(0, newTotalInvested).toFixed(2)
+          });
+          
+          // Add to wallet
+          const wallet = await storage.getCommunityWallet(order.communityId);
+          if (wallet) {
+            const newBalance = parseFloat(wallet.balance) + parseFloat(order.totalAmount);
+            await storage.updateCommunityWallet(order.communityId, newBalance.toFixed(2));
+          }
+        }
+      }
+      
+      const updatedOrder = await storage.getCommunityOrder(order.id);
+      res.json(updatedOrder);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to execute order" });
+    }
+  });
+
+  // Get community contributions
+  app.get("/api/communities/:id/contributions", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const contributions = await storage.getCommunityContributions(req.params.id);
+    res.json(contributions);
+  });
+
+  // Get user contributions
+  app.get("/api/communities/:id/contributions/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    // Check if user is a member
+    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    if (!member) {
+      return res.status(403).json({ error: "Not a member of this community" });
+    }
+    
+    const contributions = await storage.getUserContributions(req.params.id, req.session.userId);
+    res.json(contributions);
+  });
+
+  // Create contribution (deposit/withdrawal)
+  app.post("/api/communities/:id/contributions", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is a member
+      const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+      if (!member) {
+        return res.status(403).json({ error: "Not a member of this community" });
+      }
+      
+      const schema = z.object({
+        amount: z.coerce.number().positive(),
+        type: z.enum(['deposit', 'withdrawal'])
+      });
+      
+      const validated = schema.parse(req.body);
+      const contribution = await storage.createContribution({
+        communityId: req.params.id,
+        userId: req.session.userId,
+        orderId: null,
+        amount: validated.amount.toString(),
+        type: validated.type
+      });
+      
+      res.json(contribution);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ error: validationError.message });
+      }
+      res.status(500).json({ error: "Failed to create contribution" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
