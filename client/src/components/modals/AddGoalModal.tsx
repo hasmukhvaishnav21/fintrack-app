@@ -111,8 +111,8 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col h-full">
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto px-4 pb-2 space-y-3">
+              {/* Scrollable Form Body */}
+              <div className="flex-1 overflow-y-auto px-4 space-y-4">
                 {/* Goal Name */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Goal Name</label>
@@ -201,8 +201,8 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
                 </div>
               </div>
 
-              {/* Fixed Submit Button */}
-              <div className="sticky bottom-0 bg-background px-4 pt-2 pb-6 shadow-[0_-1px_0_0_var(--border)]">
+              {/* Footer Action Band */}
+              <div className="flex-shrink-0 px-4 pb-4 pt-1 border-t border-border bg-gradient-to-t from-background/50 to-background">
                 <button
                   type="submit"
                   disabled={createGoalMutation.isPending}
