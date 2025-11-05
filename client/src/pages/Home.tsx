@@ -158,11 +158,9 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Fixed Header Section: Hero + Quick Actions */}
-      <section className="flex-shrink-0">
-        {/* Header with extra top padding for mobile */}
-        <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header with extra top padding for mobile */}
+      <div className="bg-primary text-primary-foreground px-6 pb-6 pt-12 rounded-b-3xl">
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm opacity-90 flex items-center gap-2">
@@ -254,10 +252,8 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Scrollable Content Section: Investments, Goals, Transactions */}
-      <main className="flex-1 overflow-y-auto px-6 space-y-6 pb-24">
+      <div className="px-6 space-y-6">
 
         {/* Investment Summary */}
         {investments.length > 0 && (
@@ -455,7 +451,7 @@ export default function Home() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Modals */}
       <AddIncomeModal isOpen={showAddIncome} onClose={() => setShowAddIncome(false)} />
