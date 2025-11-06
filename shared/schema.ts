@@ -202,6 +202,8 @@ export const communityMembers = pgTable("community_members", {
   communityId: varchar("community_id").notNull(),
   userId: varchar("user_id").notNull(),
   role: text("role").notNull().default("member"), // 'admin', 'treasurer', 'member'
+  status: text("status").notNull().default("active"), // 'active', 'exited'
+  exitedAt: timestamp("exited_at"),
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
 });
 
@@ -275,7 +277,7 @@ export type CommunityContribution = typeof communityContributions.$inferSelect;
 
 // Insert schemas for community tables
 export const insertCommunitySchema = createInsertSchema(communities).omit({ id: true, createdAt: true, memberCount: true });
-export const insertCommunityMemberSchema = createInsertSchema(communityMembers).omit({ id: true, joinedAt: true });
+export const insertCommunityMemberSchema = createInsertSchema(communityMembers).omit({ id: true, joinedAt: true, status: true, exitedAt: true });
 export const insertCommunityWalletSchema = createInsertSchema(communityWallets).omit({ id: true, updatedAt: true });
 export const insertCommunityPositionSchema = createInsertSchema(communityPositions).omit({ id: true, updatedAt: true });
 export const insertCommunityOrderSchema = createInsertSchema(communityOrders).omit({ id: true, createdAt: true, status: true, votesFor: true, votesAgainst: true, executedAt: true });
