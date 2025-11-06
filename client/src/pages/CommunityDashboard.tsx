@@ -7,6 +7,7 @@ import {
   Users,
   Wallet,
   TrendingUp,
+  TrendingDown,
   Plus,
   Vote,
   Settings,
@@ -18,6 +19,7 @@ import {
 import { Community, CommunityWallet, CommunityPosition, CommunityMember, CommunityOrder } from '@shared/schema';
 import CreateOrderModal from '@/components/modals/CreateOrderModal';
 import VoteOrderModal from '@/components/modals/VoteOrderModal';
+import WithdrawShareModal from '@/components/modals/WithdrawShareModal';
 
 export default function CommunityDashboard() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +27,7 @@ export default function CommunityDashboard() {
   const [activeTab, setActiveTab] = useState<'holdings' | 'members' | 'activity'>('holdings');
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<CommunityOrder | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   // Fetch community data
   const { data: community, isLoading: loadingCommunity } = useQuery<Community>({
@@ -152,6 +155,7 @@ export default function CommunityDashboard() {
             wallet={wallet}
             positions={positions}
             totalValue={totalValue}
+            onWithdraw={() => setShowWithdrawModal(true)}
           />
         )}
         {activeTab === 'members' && <MembersTab members={members} />}
@@ -187,6 +191,13 @@ export default function CommunityDashboard() {
           order={selectedOrder}
         />
       )}
+      
+      <WithdrawShareModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        communityId={id!}
+        communityName={community.name}
+      />
     </div>
   );
 }
@@ -196,9 +207,10 @@ interface HoldingsTabProps {
   wallet?: CommunityWallet;
   positions: CommunityPosition[];
   totalValue: number;
+  onWithdraw: () => void;
 }
 
-function HoldingsTab({ wallet, positions, totalValue }: HoldingsTabProps) {
+function HoldingsTab({ wallet, positions, totalValue, onWithdraw }: HoldingsTabProps) {
   const balance = parseFloat(wallet?.balance || '0');
 
   return (
@@ -224,6 +236,27 @@ function HoldingsTab({ wallet, positions, totalValue }: HoldingsTabProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Withdraw My Share Button */}
+      <motion.button
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        onClick={onWithdraw}
+        className="w-full p-4 rounded-2xl bg-destructive/10 border-2 border-destructive/30 hover-elevate active-elevate-2 flex items-center justify-between"
+        data-testid="button-withdraw-share"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
+            <TrendingDown className="w-5 h-5 text-destructive" />
+          </div>
+          <div className="text-left">
+            <h3 className="text-sm font-semibold text-destructive">Withdraw My Share</h3>
+            <p className="text-xs text-destructive/70">Exit community & get your funds</p>
+          </div>
+        </div>
+        <ArrowLeft className="w-5 h-5 text-destructive rotate-180" />
+      </motion.button>
 
       {/* Positions */}
       <div>
