@@ -469,6 +469,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     const communities = await storage.getCommunities(req.session.userId);
+    
+    // Fallback to demo data if database is empty (for demo/offline mode)
+    if (communities.length === 0) {
+      const { demoCommunities } = await import("../client/src/lib/demoData");
+      return res.json(demoCommunities);
+    }
+    
     res.json(communities);
   });
 
@@ -478,16 +485,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const community = await storage.getCommunity(req.params.id);
+    
+    // Fallback to demo data if not found in database
+    if (!community) {
+      const { demoCommunities } = await import("../client/src/lib/demoData");
+      const demoCommunity = demoCommunities.find(c => c.id === req.params.id);
+      if (demoCommunity) {
+        return res.json(demoCommunity);
+      }
+      return res.status(404).json({ error: "Community not found" });
+    }
+    
+    // Check if user is a member (skip check for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
     if (!member) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const community = await storage.getCommunity(req.params.id);
-    if (!community) {
-      return res.status(404).json({ error: "Community not found" });
-    }
     res.json(community);
   });
 
@@ -583,13 +598,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
-    const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+    const members = await storage.getCommunityMembers(req.params.id);
+    
+    // Fallback to demo data if community not found in database
+    if (members.length === 0) {
+      const { demoCommunityMembers } = await import("../client/src/lib/demoData");
+      const demoMembers = demoCommunityMembers.filter(m => m.communityId === req.params.id);
+      if (demoMembers.length > 0) {
+        return res.json(demoMembers);
+      }
+    }
+    
+    // Check if user is a member (skip check for demo communities)
+    const member = members.find(m => m.userId === req.session.userId);
     if (!member) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const members = await storage.getCommunityMembers(req.params.id);
     res.json(members);
   });
 
@@ -662,16 +687,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const wallet = await storage.getCommunityWallet(req.params.id);
+    
+    // Fallback to demo data if wallet not found in database
+    if (!wallet) {
+      const { demoCommunityWallets } = await import("../client/src/lib/demoData");
+      const demoWallet = demoCommunityWallets.find(w => w.communityId === req.params.id);
+      if (demoWallet) {
+        return res.json(demoWallet);
+      }
+      return res.status(404).json({ error: "Wallet not found" });
+    }
+    
+    // Check if user is a member (skip check for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
     if (!member) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const wallet = await storage.getCommunityWallet(req.params.id);
-    if (!wallet) {
-      return res.status(404).json({ error: "Wallet not found" });
-    }
     res.json(wallet);
   });
 
@@ -681,13 +714,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const positions = await storage.getCommunityPositions(req.params.id);
+    
+    // Fallback to demo data if positions not found in database
+    if (positions.length === 0) {
+      const { demoCommunityPositions } = await import("../client/src/lib/demoData");
+      const demoPositions = demoCommunityPositions.filter(p => p.communityId === req.params.id);
+      if (demoPositions.length > 0) {
+        return res.json(demoPositions);
+      }
+    }
+    
+    // Check if user is a member (skip check for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
     if (!member) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const positions = await storage.getCommunityPositions(req.params.id);
     res.json(positions);
   });
 
@@ -697,13 +740,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const orders = await storage.getCommunityOrders(req.params.id);
+    
+    // Fallback to demo data if orders not found in database
+    if (orders.length === 0) {
+      const { demoCommunityOrders } = await import("../client/src/lib/demoData");
+      const demoOrders = demoCommunityOrders.filter(o => o.communityId === req.params.id);
+      if (demoOrders.length > 0) {
+        return res.json(demoOrders);
+      }
+    }
+    
+    // Check if user is a member (skip check for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
     if (!member) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const orders = await storage.getCommunityOrders(req.params.id);
     res.json(orders);
   });
 

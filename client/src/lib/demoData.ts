@@ -381,7 +381,7 @@ export const demoCommunityMembers: CommunityMember[] = [
     id: "demo-mem-25",
     communityId: "demo-comm-5",
     userId: "demo-user-21",
-    role: "member",
+    role: "treasurer",
     joinedAt: new Date('2024-10-15')
   },
   {
