@@ -24,14 +24,16 @@ Core entities include Users, Transactions, Investments, Goals, Goal Transactions
 - **Authentication**: Passwordless phone-based OTP authentication with session management.
 - **Investment Tracking**: Detailed gold tracking (22K/24K) with purity, real-time prices, and P/L calculation. Features a compact home page display and a 3-dot menu for edit/delete actions with smart pricing logic.
 - **Goals Management**: Comprehensive search, filter (by category, progress, amount, date), and sorting capabilities for savings goals, with a dedicated page for goal creation.
-- **Community Investment (NEW)**: Multi-user communities for collective gold/silver investment. Features include:
+- **Community Investment**: Multi-user communities for collective gold/silver investment. Features include:
   - Community creation with configurable approval modes (majority vote, unanimous, admin-only)
   - Member management with role-based access (admin, treasurer, member)
   - Order proposal system for buy/sell decisions
   - Democratic voting on investment proposals
   - Shared wallet and positions tracking
   - Activity feed for transparency
-  - Demo data for offline mode testing
+  - **Enhanced Demo Data**: 5 diverse communities with realistic scenarios (Family Gold Savings, College Buddies Investment, Office Colleagues Pool, Neighbor Gold Club, Wedding Savings Group)
+  - **Backend Fallback System**: All community API endpoints return demo data when database is empty, enabling seamless offline/demo mode
+  - 26 demo members across communities with varied roles, 14 order proposals in different statuses, 56 vote records, and 32 contribution entries
   - **Note**: Real-time Socket.IO sync deferred as optional enhancement; current implementation uses TanStack Query cache invalidation.
 - **Mobile Deployment**: Capacitor-based Android app wrapper with GitHub Actions CI/CD for automated APK builds.
 
