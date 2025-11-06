@@ -39,6 +39,7 @@ export default function WithdrawShareModal({ isOpen, onClose, communityId, commu
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
         queryClient.invalidateQueries({ queryKey: ['/api/communities', communityId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/communities', communityId, 'my-share'] });
         
         // Show success toast
         const amount = data?.withdrawalAmount || '0';
