@@ -60,7 +60,7 @@ export interface IStorage {
   getCommunityMembers(communityId: string): Promise<CommunityMember[]>;
   getCommunityMember(communityId: string, userId: string): Promise<CommunityMember | undefined>;
   getCommunityMemberById(id: string): Promise<CommunityMember | undefined>;
-  addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt'>): Promise<CommunityMember>;
+  addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt' | 'status' | 'exitedAt'>): Promise<CommunityMember>;
   updateCommunityMember(id: string, member: Partial<Omit<CommunityMember, 'id' | 'joinedAt'>>): Promise<CommunityMember | undefined>;
   removeCommunityMember(id: string): Promise<boolean>;
   
@@ -89,6 +89,18 @@ export interface IStorage {
   getCommunityContributions(communityId: string): Promise<CommunityContribution[]>;
   getUserContributions(communityId: string, userId: string): Promise<CommunityContribution[]>;
   createContribution(contribution: Omit<CommunityContribution, 'id' | 'createdAt'>): Promise<CommunityContribution>;
+  
+  // Member withdrawal methods
+  calculateMemberShare(communityId: string, userId: string): Promise<{
+    totalContributed: string;
+    sharePercentage: number;
+    withdrawalAmount: string;
+    communityTotalValue: string;
+  }>;
+  processMemberWithdrawal(communityId: string, userId: string): Promise<{
+    withdrawalAmount: string;
+    success: boolean;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -715,11 +727,13 @@ export class MemStorage implements IStorage {
     return this.communityMembers.get(id);
   }
 
-  async addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt'>): Promise<CommunityMember> {
+  async addCommunityMember(member: Omit<CommunityMember, 'id' | 'joinedAt' | 'status' | 'exitedAt'>): Promise<CommunityMember> {
     const id = randomUUID();
     const newMember: CommunityMember = {
       ...member,
       id,
+      status: 'active',
+      exitedAt: null,
       joinedAt: new Date()
     };
     this.communityMembers.set(id, newMember);
@@ -912,6 +926,114 @@ export class MemStorage implements IStorage {
     }
     
     return newContribution;
+  }
+
+  // Member withdrawal methods
+  async calculateMemberShare(communityId: string, userId: string): Promise<{
+    totalContributed: string;
+    sharePercentage: number;
+    withdrawalAmount: string;
+    communityTotalValue: string;
+  }> {
+    // Get all contributions for this community
+    const allContributions = await this.getCommunityContributions(communityId);
+    
+    // Calculate total contributions by all members (only deposits)
+    const totalCommunityContributions = allContributions
+      .filter(c => c.type === 'deposit')
+      .reduce((sum, c) => sum + parseFloat(c.amount), 0);
+    
+    // Calculate this user's total contributions (deposits minus withdrawals)
+    const userContributions = allContributions
+      .filter(c => c.userId === userId);
+    
+    const userDeposits = userContributions
+      .filter(c => c.type === 'deposit')
+      .reduce((sum, c) => sum + parseFloat(c.amount), 0);
+    
+    const userWithdrawals = userContributions
+      .filter(c => c.type === 'withdrawal')
+      .reduce((sum, c) => sum + parseFloat(c.amount), 0);
+    
+    const totalContributed = userDeposits - userWithdrawals;
+    
+    // Calculate share percentage
+    const sharePercentage = totalCommunityContributions > 0 
+      ? (totalContributed / totalCommunityContributions) * 100 
+      : 0;
+    
+    // Get community wallet balance
+    const wallet = await this.getCommunityWallet(communityId);
+    const walletBalance = wallet ? parseFloat(wallet.balance) : 0;
+    
+    // Get all community positions and calculate their total value
+    const positions = await this.getCommunityPositions(communityId);
+    const positionsValue = positions.reduce((sum, p) => sum + parseFloat(p.totalInvested), 0);
+    
+    // Total community value = wallet balance + positions value
+    const communityTotalValue = walletBalance + positionsValue;
+    
+    // Calculate withdrawal amount = user's share of total value
+    const withdrawalAmount = (communityTotalValue * sharePercentage) / 100;
+    
+    return {
+      totalContributed: totalContributed.toFixed(2),
+      sharePercentage: parseFloat(sharePercentage.toFixed(2)),
+      withdrawalAmount: withdrawalAmount.toFixed(2),
+      communityTotalValue: communityTotalValue.toFixed(2)
+    };
+  }
+
+  async processMemberWithdrawal(communityId: string, userId: string): Promise<{
+    withdrawalAmount: string;
+    success: boolean;
+  }> {
+    try {
+      // Calculate member's share
+      const shareInfo = await this.calculateMemberShare(communityId, userId);
+      
+      if (parseFloat(shareInfo.withdrawalAmount) <= 0) {
+        return { withdrawalAmount: '0', success: false };
+      }
+      
+      // Mark member as exited
+      const member = await this.getCommunityMember(communityId, userId);
+      if (member) {
+        await this.updateCommunityMember(member.id, {
+          status: 'exited',
+          exitedAt: new Date()
+        });
+      }
+      
+      // Create withdrawal contribution record
+      await this.createContribution({
+        communityId,
+        userId,
+        amount: shareInfo.withdrawalAmount,
+        type: 'withdrawal',
+        orderId: null
+      });
+      
+      // Reduce positions proportionally based on share percentage
+      const positions = await this.getCommunityPositions(communityId);
+      for (const position of positions) {
+        const newQuantity = parseFloat(position.quantity) * (1 - shareInfo.sharePercentage / 100);
+        const newTotalInvested = parseFloat(position.totalInvested) * (1 - shareInfo.sharePercentage / 100);
+        
+        await this.updateCommunityPosition(position.id, {
+          quantity: newQuantity.toFixed(3),
+          totalInvested: newTotalInvested.toFixed(2)
+        });
+      }
+      
+      return {
+        withdrawalAmount: shareInfo.withdrawalAmount,
+        success: true
+      };
+    } catch (error) {
+      console.error('Error processing withdrawal:', error);
+      return { withdrawalAmount: '0', success: false };
+    }
   }
 }
 
