@@ -30,18 +30,35 @@ export default function WithdrawShareModal({ isOpen, onClose, communityId, commu
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', `/api/communities/${communityId}/withdraw`, {});
+      const response = await apiRequest('POST', `/api/communities/${communityId}/withdraw`, {});
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/communities', communityId] });
-      toast({
-        title: 'Withdrawal Successful',
-        description: `₹${parseFloat(data.withdrawalAmount).toLocaleString('en-IN')} has been withdrawn to your account.`,
-      });
-      onClose();
+      try {
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/communities', communityId] });
+        
+        // Show success toast
+        const amount = data?.withdrawalAmount || '0';
+        toast({
+          title: 'Withdrawal Successful',
+          description: `₹${parseFloat(amount).toLocaleString('en-IN')} withdrawn successfully.`,
+        });
+        
+        // Close modal after a short delay to allow toast to show
+        setTimeout(() => {
+          onClose();
+        }, 100);
+      } catch (error) {
+        console.error('Error in withdrawal success handler:', error);
+        // Still close the modal even if there's an error
+        onClose();
+      }
     },
     onError: (error: any) => {
+      console.error('Withdrawal error:', error);
       toast({
         title: 'Withdrawal Failed',
         description: error.message || 'Failed to process withdrawal',

@@ -1089,6 +1089,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Unauthorized" });
       }
       
+      // Check if this is a demo community
+      const isDemoCommunity = req.params.id.startsWith('demo-comm-');
+      
+      if (isDemoCommunity) {
+        // Return demo share data for demo communities
+        const demoShareInfo = {
+          totalContributed: "25000.00",
+          sharePercentage: 20.5,
+          withdrawalAmount: "26500.00",
+          communityTotalValue: "129000.00"
+        };
+        return res.json(demoShareInfo);
+      }
+      
       // Check if user is a member
       const member = await storage.getCommunityMember(req.params.id, req.session.userId);
       if (!member) {
@@ -1113,6 +1127,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!req.session.userId) {
         return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if this is a demo community
+      const isDemoCommunity = req.params.id.startsWith('demo-comm-');
+      
+      if (isDemoCommunity) {
+        // Return success response for demo communities (read-only)
+        return res.json({
+          withdrawalAmount: "26500.00",
+          success: true
+        });
       }
       
       // Check if user is a member
