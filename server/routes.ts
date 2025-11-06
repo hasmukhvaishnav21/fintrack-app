@@ -1082,6 +1082,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get member share calculation
+  app.get("/api/communities/:id/my-share", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is a member
+      const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+      if (!member) {
+        return res.status(403).json({ error: "Not a member of this community" });
+      }
+      
+      // Check if member has already exited
+      if (member.status === 'exited') {
+        return res.status(400).json({ error: "You have already exited this community" });
+      }
+      
+      const shareInfo = await storage.calculateMemberShare(req.params.id, req.session.userId);
+      res.json(shareInfo);
+    } catch (error: any) {
+      console.error('Error calculating share:', error);
+      res.status(500).json({ error: "Failed to calculate share" });
+    }
+  });
+
+  // Process member withdrawal
+  app.post("/api/communities/:id/withdraw", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Check if user is a member
+      const member = await storage.getCommunityMember(req.params.id, req.session.userId);
+      if (!member) {
+        return res.status(403).json({ error: "Not a member of this community" });
+      }
+      
+      // Check if member has already exited
+      if (member.status === 'exited') {
+        return res.status(400).json({ error: "You have already exited this community" });
+      }
+      
+      // Check if user is the only admin
+      const community = await storage.getCommunity(req.params.id);
+      if (community && community.adminId === req.session.userId) {
+        const members = await storage.getCommunityMembers(req.params.id);
+        const activeMembers = members.filter(m => m.status === 'active');
+        
+        if (activeMembers.length > 1) {
+          return res.status(400).json({ 
+            error: "As admin, you must transfer admin rights before withdrawing. Please assign another active member as admin." 
+          });
+        }
+      }
+      
+      const result = await storage.processMemberWithdrawal(req.params.id, req.session.userId);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: "Failed to process withdrawal" });
+      }
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error processing withdrawal:', error);
+      res.status(500).json({ error: "Failed to process withdrawal" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
