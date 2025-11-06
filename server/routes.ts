@@ -472,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if database is empty (for demo/offline mode)
     if (communities.length === 0) {
-      const { demoCommunities } = await import("../client/src/lib/demoData");
+      const { demoCommunities } = await import("@shared/demoData");
       return res.json(demoCommunities);
     }
     
@@ -489,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if not found in database
     if (!community) {
-      const { demoCommunities } = await import("../client/src/lib/demoData");
+      const { demoCommunities } = await import("@shared/demoData");
       const demoCommunity = demoCommunities.find(c => c.id === req.params.id);
       if (demoCommunity) {
         return res.json(demoCommunity);
@@ -602,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if community not found in database
     if (members.length === 0) {
-      const { demoCommunityMembers } = await import("../client/src/lib/demoData");
+      const { demoCommunityMembers } = await import("@shared/demoData");
       const demoMembers = demoCommunityMembers.filter(m => m.communityId === req.params.id);
       if (demoMembers.length > 0) {
         return res.json(demoMembers);
@@ -691,7 +691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if wallet not found in database
     if (!wallet) {
-      const { demoCommunityWallets } = await import("../client/src/lib/demoData");
+      const { demoCommunityWallets } = await import("@shared/demoData");
       const demoWallet = demoCommunityWallets.find(w => w.communityId === req.params.id);
       if (demoWallet) {
         return res.json(demoWallet);
@@ -718,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if positions not found in database
     if (positions.length === 0) {
-      const { demoCommunityPositions } = await import("../client/src/lib/demoData");
+      const { demoCommunityPositions } = await import("@shared/demoData");
       const demoPositions = demoCommunityPositions.filter(p => p.communityId === req.params.id);
       if (demoPositions.length > 0) {
         return res.json(demoPositions);
@@ -744,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Fallback to demo data if orders not found in database
     if (orders.length === 0) {
-      const { demoCommunityOrders } = await import("../client/src/lib/demoData");
+      const { demoCommunityOrders } = await import("@shared/demoData");
       const demoOrders = demoCommunityOrders.filter(o => o.communityId === req.params.id);
       if (demoOrders.length > 0) {
         return res.json(demoOrders);
@@ -856,6 +856,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const order = await storage.getCommunityOrder(req.params.id);
     if (!order) {
+      // Try demo data fallback
+      const { demoCommunityOrders, demoVoteRecords } = await import("@shared/demoData");
+      const demoOrder = demoCommunityOrders.find(o => o.id === req.params.id);
+      if (demoOrder) {
+        const demoVotes = demoVoteRecords.filter(v => v.orderId === req.params.id);
+        return res.json(demoVotes);
+      }
       return res.status(404).json({ error: "Order not found" });
     }
     
@@ -1019,13 +1026,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const contributions = await storage.getCommunityContributions(req.params.id);
+    
+    // Fallback to demo data if no contributions found
+    if (contributions.length === 0) {
+      const { demoCommunityContributions } = await import("@shared/demoData");
+      const demoContribs = demoCommunityContributions.filter(c => c.communityId === req.params.id);
+      if (demoContribs.length > 0) {
+        return res.json(demoContribs);
+      }
+    }
+    
+    // Check if user is a member (skip for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
-    if (!member) {
+    if (!member && contributions.length > 0) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const contributions = await storage.getCommunityContributions(req.params.id);
     res.json(contributions);
   });
 
@@ -1035,13 +1052,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    // Check if user is a member
+    const contributions = await storage.getUserContributions(req.params.id, req.session.userId);
+    
+    // Fallback to demo data if no contributions found
+    if (contributions.length === 0) {
+      const { demoCommunityContributions } = await import("@shared/demoData");
+      const demoContribs = demoCommunityContributions.filter(c => 
+        c.communityId === req.params.id && c.userId === req.session.userId
+      );
+      if (demoContribs.length > 0) {
+        return res.json(demoContribs);
+      }
+    }
+    
+    // Check if user is a member (skip for demo communities)
     const member = await storage.getCommunityMember(req.params.id, req.session.userId);
-    if (!member) {
+    if (!member && contributions.length > 0) {
       return res.status(403).json({ error: "Not a member of this community" });
     }
     
-    const contributions = await storage.getUserContributions(req.params.id, req.session.userId);
     res.json(contributions);
   });
 
