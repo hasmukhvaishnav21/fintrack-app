@@ -206,6 +206,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-1",
     userId: "demo-user-1",
     role: "admin",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-15')
   },
   {
@@ -213,6 +215,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-1",
     userId: "demo-user-2",
     role: "treasurer",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-15')
   },
   {
@@ -220,6 +224,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-1",
     userId: "demo-user-3",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-16')
   },
   {
@@ -227,6 +233,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-1",
     userId: "demo-user-4",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-16')
   },
   {
@@ -234,6 +242,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-1",
     userId: "demo-user-5",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-20')
   },
   
@@ -243,6 +253,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-1",
     role: "admin",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-01')
   },
   {
@@ -250,6 +262,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-6",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-01')
   },
   {
@@ -257,6 +271,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-7",
     role: "treasurer",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-02')
   },
   {
@@ -264,6 +280,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-8",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-02')
   },
   {
@@ -271,6 +289,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-9",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-03')
   },
   {
@@ -278,6 +298,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-2",
     userId: "demo-user-10",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-09-05')
   },
   
@@ -287,6 +309,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-3",
     userId: "demo-user-8",
     role: "admin",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-01')
   },
   {
@@ -294,6 +318,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-3",
     userId: "demo-user-11",
     role: "treasurer",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-01')
   },
   {
@@ -301,6 +327,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-3",
     userId: "demo-user-12",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-02')
   },
   {
@@ -308,6 +336,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-3",
     userId: "demo-user-13",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-03')
   },
   
@@ -317,6 +347,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-10",
     role: "admin",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-20')
   },
   {
@@ -324,6 +356,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-14",
     role: "treasurer",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-20')
   },
   {
@@ -331,6 +365,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-15",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-21')
   },
   {
@@ -338,6 +374,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-16",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-22')
   },
   {
@@ -345,6 +383,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-17",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-23')
   },
   {
@@ -352,6 +392,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-18",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-25')
   },
   {
@@ -359,6 +401,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-19",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-07-28')
   },
   {
@@ -366,6 +410,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-4",
     userId: "demo-user-20",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-08-01')
   },
   
@@ -375,6 +421,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-5",
     userId: "demo-user-1",
     role: "admin",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-15')
   },
   {
@@ -382,6 +430,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-5",
     userId: "demo-user-21",
     role: "treasurer",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-15')
   },
   {
@@ -389,6 +439,8 @@ export const demoCommunityMembers: CommunityMember[] = [
     communityId: "demo-comm-5",
     userId: "demo-user-22",
     role: "member",
+    status: "active",
+    exitedAt: null,
     joinedAt: new Date('2024-10-16')
   }
 ];
